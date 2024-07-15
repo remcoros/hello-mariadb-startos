@@ -98,13 +98,19 @@ db_process=$!
 
 # Run DbGate
 
+export LOG_LEVEL=warn
+
 export CONNECTIONS=mariadb
 export LABEL_mariadb=MariaDB
 export SERVER_mariadb=127.0.0.1
 export USER_mariadb=root
 export PASSWORD_mariadb=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
 export PORT_mariadb=3306
-export ENGINE_mariadb=mysql@dbgate-plugin-mysql
+export ENGINE_mariadb=mariadb@dbgate-plugin-mysql
+
+export LOGINS=root
+export LOGIN_PASSWORD_root=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
+export BASIC_AUTH=true
 
 cd /home/dbgate-docker 
 
