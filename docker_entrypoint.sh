@@ -58,25 +58,6 @@ SET PASSWORD FOR 'root'@'localhost'=PASSWORD('${MYSQL_ROOT_PASSWORD}') ;
 DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
-    mkdir -p /root/data/start9
-    cat <<EOF >/root/data/start9/stats.yaml
-data:
-  DbGate username:
-    copyable: true
-    description: Username for the DbGate User Interface.
-    masked: false
-    qr: false
-    type: string
-    value: root
-  MariaDB root password:
-    copyable: true
-    description: Password for the DbGate User interface. This is also your MariaDB root password. Use it with caution!
-    masked: true
-    qr: false
-    type: string
-    value: $MYSQL_ROOT_PASSWORD
-version: 2
-EOF
 
 	if [ "$MYSQL_DATABASE" != "" ]; then
 		echo "[i] Creating database: $MYSQL_DATABASE"
@@ -99,13 +80,36 @@ EOF
     echo
 fi
 
+# Update properties
+
+MYSQL_ROOT_PASSWORD=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
+
+mkdir -p /root/data/start9
+cat <<EOF >/root/data/start9/stats.yaml
+data:
+  DbGate username:
+    copyable: true
+    description: Username for the DbGate User Interface.
+    masked: false
+    qr: false
+    type: string
+    value: root
+  MariaDB root password:
+    copyable: true
+    description: Password for the DbGate User interface. This is also your MariaDB root password. Use it with caution!
+    masked: true
+    qr: false
+    type: string
+    value: $MYSQL_ROOT_PASSWORD
+version: 2
+EOF
+
 # Run MariaDB
+
 /usr/sbin/mysqld --user=mysql --datadir='/var/lib/mysql' --console --skip-networking=0 --bind-address=0.0.0.0 &
 db_process=$!
 
 # Run DbGate
-
-MYSQL_ROOT_PASSWORD=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
 
 export NODE_ENV=production
 export LOG_LEVEL=warn
