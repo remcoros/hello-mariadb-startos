@@ -28,14 +28,14 @@ else
 
     # generate the root password
     if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
-        export MYSQL_ROOT_PASSWORD=`pwgen 16 1`
+        export MYSQL_ROOT_PASSWORD=$(pwgen 16 1)
         echo "[i] MariaDB root Password: $MYSQL_ROOT_PASSWORD"
     fi
 
     # create a database and give privileges for the 'app'
     MYSQL_DATABASE=${MYSQL_DATABASE:-"app"}
-	MYSQL_USER=${MYSQL_USER:-"app"}
-	MYSQL_PASSWORD=${MYSQL_PASSWORD:-"app"}
+    MYSQL_USER=${MYSQL_USER:-"app"}
+    MYSQL_PASSWORD=${MYSQL_PASSWORD:-"app"}
 
     tfile=$(mktemp)
     if [ ! -f "$tfile" ]; then
@@ -52,18 +52,18 @@ DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
 
-	if [ "$MYSQL_DATABASE" != "" ]; then
-		echo "[i] Creating database: $MYSQL_DATABASE"
-		echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
-		echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >> $tfile
+    if [ "$MYSQL_DATABASE" != "" ]; then
+        echo "[i] Creating database: $MYSQL_DATABASE"
+        echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
+        echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >>$tfile
 
         if [ "$MYSQL_USER" != "" ]; then
             echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
-            echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
-            echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';" >> $tfile
-            echo "FLUSH PRIVILEGES;" >> $tfile
-	    fi
-	fi
+            echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >>$tfile
+            echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';" >>$tfile
+            echo "FLUSH PRIVILEGES;" >>$tfile
+        fi
+    fi
 
     # run the script
     /usr/sbin/mysqld --user=mysql --datadir='/var/lib/mysql' --bootstrap --verbose=0 --skip-networking=0 <$tfile
@@ -120,7 +120,7 @@ export LOGINS=root
 export LOGIN_PASSWORD_root=$MYSQL_ROOT_PASSWORD
 export BASIC_AUTH=true
 
-cd /home/dbgate-docker 
+cd /home/dbgate-docker
 
 node bundle.js --listen-api &
 dbgate_process=$!
@@ -136,7 +136,7 @@ _term() {
     echo "Caught TERM signal!"
     kill -TERM "$app_process" 2>/dev/null
     kill -TERM "$dbgate_process" 2>/dev/null
-    kill -TERM "$db_process" 2>/dev/null    
+    kill -TERM "$db_process" 2>/dev/null
 }
 
 trap _term TERM
