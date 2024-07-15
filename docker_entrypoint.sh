@@ -61,9 +61,16 @@ EOF
     mkdir -p /root/data/start9
     cat <<EOF >/root/data/start9/stats.yaml
 data:
+  DbGate username:
+    copyable: true
+    description: Username for the DbGate User Interface.
+    masked: false
+    qr: false
+    type: string
+    value: root
   MariaDB root password:
     copyable: true
-    description: Remember that you are always the one in control. This is your MariaDB root password. Use it with caution!
+    description: Password for the DbGate User interface. This is also your MariaDB root password. Use it with caution!
     masked: true
     qr: false
     type: string
@@ -98,18 +105,23 @@ db_process=$!
 
 # Run DbGate
 
+MYSQL_ROOT_PASSWORD=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
+
+export NODE_ENV=production
 export LOG_LEVEL=warn
+export FILE_LOG_LEVEL=info
+export CONSOLE_LOG_LEVEL=warn
 
 export CONNECTIONS=mariadb
 export LABEL_mariadb=MariaDB
 export SERVER_mariadb=127.0.0.1
 export USER_mariadb=root
-export PASSWORD_mariadb=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
+export PASSWORD_mariadb=$MYSQL_ROOT_PASSWORD
 export PORT_mariadb=3306
 export ENGINE_mariadb=mariadb@dbgate-plugin-mysql
 
 export LOGINS=root
-export LOGIN_PASSWORD_root=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
+export LOGIN_PASSWORD_root=$MYSQL_ROOT_PASSWORD
 export BASIC_AUTH=true
 
 cd /home/dbgate-docker 
