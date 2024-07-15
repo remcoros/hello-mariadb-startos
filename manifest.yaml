@@ -5,10 +5,10 @@ release-notes: |
   * Initial release
 license: MIT
 wrapper-repo: "https://github.com/remcoros/hello-mariadb-startos"
-upstream-repo: "https://github.com/qdm12/hello-mariadb-startos"
-support-site: "https://github.com/qdm12/hello-mariadb-startos/issues"
-marketing-site: "https://github.com/qdm12/hello-mariadb-startos"
-donation-url: "https://github.com/qdm12/hello-mariadb-startos"
+upstream-repo: "https://github.com/remcoros/hello-mariadb-startos"
+support-site: "https://github.com/remcoros/hello-mariadb-startos/issues"
+marketing-site: "https://github.com/remcoros/hello-mariadb-startos"
+donation-url: "https://github.com/remcoros/hello-mariadb-startos"
 build: ["make"]
 description:
   short: Hello MariaDB - Example StartOS wrapper
