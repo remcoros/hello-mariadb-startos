@@ -110,10 +110,12 @@ export CONSOLE_LOG_LEVEL=warn
 
 export CONNECTIONS=mariadb
 export LABEL_mariadb=MariaDB
-export SERVER_mariadb=127.0.0.1
+export SOCKET_PATH_mariadb=/run/mysqld/mysqld.sock
+# we connect using a socket path, but could also use ip/port like this:
+#export SERVER_mariadb=127.0.0.1
+#export PORT_mariadb=3306
 export USER_mariadb=root
 export PASSWORD_mariadb=$MYSQL_ROOT_PASSWORD
-export PORT_mariadb=3306
 export ENGINE_mariadb=mariadb@dbgate-plugin-mysql
 
 export LOGINS=root
