@@ -15,8 +15,9 @@ if [ -d /var/lib/mysql/mysql ]; then
     echo "[i] MariaDB directory already present, skipping creation"
     chown -R mysql:mysql /var/lib/mysql
 
-    # get root password from stats file, we'll need it later. The stats file is created and updated on every run (and included in backups)
-    MYSQL_ROOT_PASSWORD=$(yq e '.data.["MariaDB root password"].value' /root/data/start9/stats.yaml)
+    # get root password from passwords file, we'll need it later. The passwords file is created and updated on every run (and included in backups)
+    export MYSQL_ROOT_PASSWORD=$(yq e '.root' /root/data/start9/passwords.yaml)
+    export MYSQL_PASSWORD=$(yq e '.app' /root/data/start9/passwords.yaml)
 else
     echo "[i] MariaDB data directory not found, creating initial DBs"
 
@@ -29,7 +30,7 @@ else
     # generate the root password
     if [ "$MYSQL_ROOT_PASSWORD" = "" ]; then
         export MYSQL_ROOT_PASSWORD=$(pwgen 16 1)
-        echo "[i] MariaDB root Password: $MYSQL_ROOT_PASSWORD"
+        # echo "[i] MariaDB root Password: $MYSQL_ROOT_PASSWORD"
     fi
 
     # create a database and give privileges for the 'app'
@@ -52,18 +53,14 @@ DROP DATABASE IF EXISTS test ;
 FLUSH PRIVILEGES ;
 EOF
 
-    if [ "$MYSQL_DATABASE" != "" ]; then
-        echo "[i] Creating database: $MYSQL_DATABASE"
-        echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
-        echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >>$tfile
-
-        if [ "$MYSQL_USER" != "" ]; then
-            echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
-            echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >>$tfile
-            echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';" >>$tfile
-            echo "FLUSH PRIVILEGES;" >>$tfile
-        fi
-    fi
+    echo "[i] Creating database: $MYSQL_DATABASE"
+    echo "[i] with character set: 'utf8' and collation: 'utf8_general_ci'"
+    echo "CREATE DATABASE IF NOT EXISTS \`$MYSQL_DATABASE\` CHARACTER SET utf8 COLLATE utf8_general_ci;" >>$tfile
+    
+    echo "[i] Creating user: $MYSQL_USER with password $MYSQL_PASSWORD"
+    echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';" >>$tfile
+    echo "GRANT ALL ON \`$MYSQL_DATABASE\`.* to '$MYSQL_USER'@'localhost' IDENTIFIED BY '$MYSQL_PASSWORD';" >>$tfile
+    echo "FLUSH PRIVILEGES;" >>$tfile
 
     # run the script
     /usr/sbin/mysqld --user=mysql --datadir='/var/lib/mysql' --bootstrap --verbose=0 --skip-networking=0 <$tfile
@@ -93,13 +90,33 @@ data:
     qr: false
     type: string
     value: $MYSQL_ROOT_PASSWORD
+  MariaDB app password:
+    copyable: true
+    description: This is the MariaDB password for the 'app' user. Use it with caution!
+    masked: true
+    qr: false
+    type: string
+    value: $MYSQL_PASSWORD
 version: 2
+EOF
+
+cat <<EOF >/root/data/start9/passwords.yaml
+root: $MYSQL_ROOT_PASSWORD
+app: $MYSQL_PASSWORD
 EOF
 
 # Run MariaDB
 
 /usr/sbin/mysqld --user=mysql --datadir='/var/lib/mysql' --console --skip-networking=0 --bind-address=0.0.0.0 &
 db_process=$!
+
+# Loop until MariaDB is up
+while ! mysql -h 127.0.0.1 -u"${MYSQL_USER}" -p"${MYSQL_PASSWORD}" -e "SELECT 1" >/dev/null 2>&1; do
+  echo "Waiting for MariaDB to be up..."
+  sleep 1
+done
+
+echo "MariaDB is up!"
 
 # Run DbGate
 
@@ -108,7 +125,7 @@ export LOG_LEVEL=warn
 export FILE_LOG_LEVEL=info
 export CONSOLE_LOG_LEVEL=warn
 
-export CONNECTIONS=mariadb
+#export CONNECTIONS=mariadb
 export LABEL_mariadb=MariaDB
 export SOCKET_PATH_mariadb=/run/mysqld/mysqld.sock
 # we connect using a socket path, but could also use ip/port like this:

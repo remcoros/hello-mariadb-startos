@@ -1,6 +1,6 @@
 id: hello-mariadb
 title: "Hello MariaDB"
-version: 0.1.0
+version: 0.2.0
 release-notes: |
   * Initial release
 license: MIT
