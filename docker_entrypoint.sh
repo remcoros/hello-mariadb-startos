@@ -125,7 +125,7 @@ export LOG_LEVEL=warn
 export FILE_LOG_LEVEL=info
 export CONSOLE_LOG_LEVEL=warn
 
-#export CONNECTIONS=mariadb
+export CONNECTIONS=mariadb
 export LABEL_mariadb=MariaDB
 export SOCKET_PATH_mariadb=/run/mysqld/mysqld.sock
 # we connect using a socket path, but could also use ip/port like this:
