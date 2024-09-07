@@ -1,5 +1,5 @@
 # DbGate container
-FROM dbgate/dbgate:5.3.4 AS dbgate
+FROM dbgate/dbgate:5.4.3 AS dbgate
 
 # Start from bookworm-slim
 FROM debian:bookworm-slim
