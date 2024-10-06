@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -ea
 
@@ -140,23 +140,34 @@ export LOGIN_PASSWORD_root=$MYSQL_ROOT_PASSWORD
 export BASIC_AUTH=true
 
 cd /home/dbgate-docker
-
 node bundle.js --listen-api &
 dbgate_process=$!
 
 # run our demo 'App'
 
-lighttpd -f /etc/lighttpd/lighttpd.conf &
-app_process=$!
+lighttpd -D -f /etc/lighttpd/lighttpd.conf &
 
-# hook the TERM signal and wait for all our processes
+# we need to grab the PID from lighttpd.pid because it forks to a new process
+while [ ! -f /var/run/lighttpd.pid ]; do
+  sleep 0.1
+done
+app_process=$(cat /var/run/lighttpd.pid)
 
-_term() {
-    echo "Caught TERM signal!"
+# hook the TERM signal
+_shutdown() {
+    echo "Shutting down..."
     kill -TERM "$app_process" 2>/dev/null
     kill -TERM "$dbgate_process" 2>/dev/null
     kill -TERM "$db_process" 2>/dev/null
 }
 
-trap _term TERM
-wait $db_process $dbgate_process $app_process
+trap "echo Caught TERM signal!; _shutdown" TERM
+
+# wait for one of the processes to finish (or crash)
+wait -n $db_process $dbgate_process $app_process
+status=$?
+
+# shutdown remaining processes
+_shutdown
+
+exit $status

@@ -1,8 +1,9 @@
 id: hello-mariadb
 title: "Hello MariaDB"
-version: 5.4.3
+version: 5.5.4
 release-notes: |
-  * Update DbGate to 5.4.3 - See [full changelog](https://github.com/dbgate/dbgate/releases/tag/v5.4.3)
+  * Update DbGate to 5.5.4 - See [full changelog](https://github.com/dbgate/dbgate/releases/tag/v5.5.4)
+  * Fix handling TERM signals in docker_entrypoint.sh
 license: MIT
 wrapper-repo: "https://github.com/remcoros/hello-mariadb-startos"
 upstream-repo: "https://github.com/remcoros/hello-mariadb-startos"
